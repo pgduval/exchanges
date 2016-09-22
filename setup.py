@@ -1,0 +1,1 @@
+DB_PATH = 'sqlite:////home/elmaster/scraper/bitcoin/exchanges/db/data.db'

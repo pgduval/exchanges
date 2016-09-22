@@ -1,6 +1,7 @@
 import requests
 import datetime
-from OrderBook import OrderBook, Price, Transaction
+import time
+from orderBook import OrderBook, Price, Transaction
 
 class QuadrigaxCollector(object):
     # Currency
@@ -162,7 +163,15 @@ class CoinsquareCollector(object):
         return dict_return
 
     def _clean_price(self, raw_data):
-        pass
+        for val in cp['quotes']:
+            if val['base'] == 'CAD' and val['ticker'] == 'BTC':
+                dict_return = dict(last=correct_amt(val['last']), 
+                    high=correct_amt(val['high24']), 
+                    low=correct_amt(val['low24']), 
+                    volume=correct_num(val['volbase']), 
+                    bid=correct_amt(val['bid']), 
+                    ask=correct_amt(val['ask']))
+                return dict_return
 
     def _clean_transaction(self, raw_data):
         list_return = []
@@ -198,25 +207,21 @@ class CoinsquareCollector(object):
     def get_price(self, ticker='btc_cad'):
 
         raw = self._get_raw_price(ticker)
-        # No cleaning. Quad price is clean
+        clean = self._clean_price(raw)
         price = Price(ticker=ticker,
                       provider=self.NAME,
                       timestamp=datetime.datetime.now(),
-                      data=raw)
+                      data=clean)
 
         return price
 
 
 
-quad = QuadrigaxCollector()
 
-qb = quad.get_book()
-qp = quad.get_price()
-qt = quad.get_transaction()
 
-coin = CoinsquareCollector()
-cb, ct = coin.get_book()
-cp = coin.get_price()
+
+
+
 
 
 

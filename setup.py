@@ -1,1 +1,5 @@
-DB_PATH = 'sqlite:////home/elmaster/scraper/bitcoin/exchanges/db/data.db'
+import os
+
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
+DB_PATH = os.path.join('sqlite:///'+ DIR_PATH, 'db', 'data.db')
+print(DB_PATH)

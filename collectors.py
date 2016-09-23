@@ -163,7 +163,7 @@ class CoinsquareCollector(object):
         return dict_return
 
     def _clean_price(self, raw_data):
-        for val in cp['quotes']:
+        for val in raw_data['quotes']:
             if val['base'] == 'CAD' and val['ticker'] == 'BTC':
                 dict_return = dict(last=correct_amt(val['last']), 
                     high=correct_amt(val['high24']), 

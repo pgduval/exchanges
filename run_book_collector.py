@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from setup import DB_PATH
 from collectors import QuadrigaxCollector, CoinsquareCollector
 
-# Get a 
+# Get a session
 engine = create_engine(DB_PATH)
 DBSession = sessionmaker(bind=engine)
 session = DBSession()

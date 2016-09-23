@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -10,9 +11,9 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 quad = QuadrigaxCollector()
-qp = quad.get_price()
-qp.store(session=session)
+qt = quad.get_transaction()
+qt.store(session=session)
 
 coin = CoinsquareCollector()
-cp = coin.get_price()
-cp.store(session=session)
+cb, ct = coin.get_book()
+ct.store(session=session)

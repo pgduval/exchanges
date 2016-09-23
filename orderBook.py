@@ -112,7 +112,7 @@ class Transaction(object):
         session.commit()
         transact_id = new_pull.transact_id
 
-        for val in qt.data:
+        for val in self.data:
             new_transact = DBTransaction()
             new_transact.transact_id = transact_id
             new_transact.trade_date = val[0]

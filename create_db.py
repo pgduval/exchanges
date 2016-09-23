@@ -1,8 +1,8 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, backref
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Float
+
 from setup import DB_PATH
-DB_PATH = 'sqlite:////home/elmaster/scraper/bitcoin/exchanges/db/data.db'
 
 Base = declarative_base()
 

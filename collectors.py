@@ -216,6 +216,104 @@ class CoinsquareCollector(object):
         return price
 
 
+class KrakenCollector(object):
+
+    NAME = 'Kraken'
+    dict_ticker_map = {'XXBTZCAD': 'btc_cad'}
+
+    # Curl function
+    def _make_request(self, api, postdict=None, timeout=8):
+        BASE_URL = "https://api.kraken.com/0/public/"
+        url = BASE_URL + api
+
+        if postdict:
+            r = requests.get(url, params=postdict, timeout=8)
+        else:
+            r = requests.get(url, timeout=8)
+        return r.json()
+
+    # Collection raw information
+    def _get_raw_book(self, ticker):
+        api = 'Depth'
+        params = {'pair': ticker, 'count': '10'}
+        return self._make_request(api=api, postdict=params)
+
+    def _get_raw_price(self, ticker):
+        api = 'Ticker'
+        params = {'pair': ticker}
+        r = self._make_request(api=api, postdict=params)
+        if r.get('result'):
+            return r['result'][ticker]
+        else:
+            print("log error")
+
+    def _get_raw_transaction(self, ticker):
+        api = 'Trades'
+        params = {'pair': ticker}
+        return self._make_request(api=api, postdict=params)
+
+    # Clean raw information
+    def _clean_book(self, raw_data):
+        dict_return = {}
+        for key in ['bids', 'asks']:
+            clean = [[float(x[0]), float(x[1])] for x in raw_data[key]]
+            dict_return[key] = clean
+        return dict_return
+
+    def _clean_price(self, raw_data):
+        dict_return = dict(last=float(raw_data['c'][0]),
+                           high=float(raw_data['h'][0]),
+                           low=float(raw_data['l'][0]),
+                           volume=float(raw_data['v'][0]),
+                           bid=float(raw_data['b'][0]),
+                           ask=float(raw_data['a'][0]))
+        return dict_return
+
+    def _clean_transaction(self, raw_data):
+        list_return = []
+        for idx, val in enumerate(raw_data):
+            price = float(val['price'])
+            amount = float(val['amount'])
+            date = datetime.datetime.fromtimestamp(int(val['date']))
+            side = val['side']
+            num = idx
+            list_return.append([date, num, price, amount, side])
+        return list_return
+
+    # Collect information
+    def get_book(self, ticker='XXBTZCAD'):
+
+        raw = self._get_raw_book(ticker)
+        clean = self._clean_book(raw)
+        order = OrderBook(ticker=ticker,
+                          provider=self.NAME,
+                          timestamp=datetime.datetime.now(),
+                          data=clean)
+
+        return order
+
+    def get_price(self, ticker='XXBTZCAD'):
+
+        raw = self._get_raw_price(ticker)
+        clean = self._clean_price(raw)
+        price = Price(ticker=self.dict_ticker_map[ticker],
+                      provider=self.NAME,
+                      timestamp=datetime.datetime.now(),
+                      data=clean)
+
+        return price
+
+    def get_transaction(self, ticker='XXBTZCAD'):
+
+        raw = self._get_raw_transaction(ticker)
+        clean = self._clean_transaction(raw)
+
+        transac = Transaction(ticker=ticker,
+                              provider=self.NAME,
+                              timestamp=datetime.datetime.now(),
+                              data=clean)
+
+        return transac
 
 
 

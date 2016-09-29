@@ -10,10 +10,16 @@ engine = create_engine(DB_PATH)
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
-quad = QuadrigaxCollector()
-qt = quad.get_transaction()
-qt.store(session=session)
+try:
+    quad = QuadrigaxCollector()
+    qt = quad.get_transaction()
+    qt.store(session=session)
+except:
+    pass
 
-coin = CoinsquareCollector()
-cb, ct = coin.get_book()
-ct.store(session=session)
+try:
+    coin = CoinsquareCollector()
+    cb, ct = coin.get_book()
+    ct.store(session=session)
+except:
+    pass

@@ -1,7 +1,7 @@
 import requests
 import datetime
-import time
 from orderBook import OrderBook, Price, Transaction
+
 
 class QuadrigaxCollector(object):
     # Currency
@@ -165,12 +165,12 @@ class CoinsquareCollector(object):
     def _clean_price(self, raw_data):
         for val in raw_data['quotes']:
             if val['base'] == 'CAD' and val['ticker'] == 'BTC':
-                dict_return = dict(last=correct_amt(val['last']), 
-                    high=correct_amt(val['high24']), 
-                    low=correct_amt(val['low24']), 
-                    volume=correct_num(val['volbase']), 
-                    bid=correct_amt(val['bid']), 
-                    ask=correct_amt(val['ask']))
+                dict_return = dict(last=correct_amt(val['last']),
+                                   high=correct_amt(val['high24']),
+                                   low=correct_amt(val['low24']),
+                                   volume=correct_num(val['volbase']),
+                                   bid=correct_amt(val['bid']),
+                                   ask=correct_amt(val['ask']))
                 return dict_return
 
     def _clean_transaction(self, raw_data):
@@ -285,7 +285,7 @@ class KrakenCollector(object):
 
         raw = self._get_raw_book(ticker)
         clean = self._clean_book(raw)
-        order = OrderBook(ticker=ticker,
+        order = OrderBook(ticker=self.dict_ticker_map[ticker],
                           provider=self.NAME,
                           timestamp=datetime.datetime.now(),
                           data=clean)
@@ -308,7 +308,7 @@ class KrakenCollector(object):
         raw = self._get_raw_transaction(ticker)
         clean = self._clean_transaction(raw)
 
-        transac = Transaction(ticker=ticker,
+        transac = Transaction(ticker=self.dict_ticker_map[ticker],
                               provider=self.NAME,
                               timestamp=datetime.datetime.now(),
                               data=clean)
@@ -316,11 +316,92 @@ class KrakenCollector(object):
         return transac
 
 
+class TaurusCollector(object):
+    # Currency
+    # btc_cad
+    # btc_usd
+    # eth_btc
+    # eth_cad
+    NAME = 'Taurus'
 
+    # Curl function
+    def _make_request(self, api, postdict=None, timeout=8):
+        BASE_URL = "https://api.taurusexchange.com/"
+        url = BASE_URL + api
 
+        if postdict:
+            r = requests.get(url, params=postdict, timeout=8)
+        else:
+            r = requests.get(url, timeout=8)
+        return r.json()
 
+    # Collection raw information
+    def _get_raw_book(self, ticker):
+        api = 'order_book?book={}'.format(ticker)
+        return self._make_request(api=api)
 
+    def _get_raw_price(self, ticker):
+        api = 'ticker?book={}'.format(ticker)
+        return self._make_request(api=api)
 
+    def _get_raw_transaction(self, ticker):
+        api = 'transactions?book={}'.format(ticker)
+        return self._make_request(api=api)
 
+    # Clean raw information
+    def _clean_book(self, raw_data):
+        dict_return = {}
+        for key in ['bids', 'asks']:
+            clean = [[float(x[0]), float(x[1])] for x in raw_data[key]]
+            dict_return[key] = clean
+        return dict_return
 
+    def _clean_price(self, raw_data):
+        dict_return = {key: float(val) for key, val in raw_data.items()}
+        return dict_return
 
+    def _clean_transaction(self, raw_data):
+        list_return = []
+        for idx, val in enumerate(raw_data):
+            price = float(val['price'])
+            amount = float(val['amount'])
+            date = datetime.datetime.fromtimestamp(int(val['date']))
+            side = val['side']
+            num = idx
+            list_return.append([date, num, price, amount, side])
+        return list_return
+
+    # Collect information
+    def get_book(self, ticker='btc_cad'):
+
+        raw = self._get_raw_book(ticker)
+        clean = self._clean_book(raw)
+        order = OrderBook(ticker=ticker,
+                          provider=self.NAME,
+                          timestamp=datetime.datetime.now(),
+                          data=clean)
+
+        return order
+
+    def get_price(self, ticker='btc_cad'):
+
+        raw = self._get_raw_price(ticker)
+        clean = self._clean_price(raw)
+        price = Price(ticker=ticker,
+                      provider=self.NAME,
+                      timestamp=datetime.datetime.now(),
+                      data=clean)
+
+        return price
+
+    def get_transaction(self, ticker='btc_cad'):
+
+        raw = self._get_raw_transaction(ticker)
+        clean = self._clean_transaction(raw)
+
+        transac = Transaction(ticker=ticker,
+                              provider=self.NAME,
+                              timestamp=datetime.datetime.now(),
+                              data=clean)
+
+        return transac

@@ -3,7 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from setup import DB_PATH
-from collectors import QuadrigaxCollector, CoinsquareCollector, KrakenCollector
+from collectors import QuadrigaxCollector, CoinsquareCollector, KrakenCollector, TaurusCollector
 
 engine = create_engine(DB_PATH)
 DBSession = sessionmaker(bind=engine)
@@ -13,6 +13,13 @@ try:
     quad = QuadrigaxCollector()
     qp = quad.get_price()
     qp.store(session=session)
+except:
+    pass
+
+try:
+    taurus = TaurusCollector()
+    tp = taurus.get_price()
+    tp.store(session=session)
 except:
     pass
 
